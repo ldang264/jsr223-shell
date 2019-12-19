@@ -1,8 +1,8 @@
-# jsr223-nativeshell
+# jsr223-shell
 
-Native shell script engines for Java implementing JSR 223
+Shell script engines for Java implementing JSR 223
 
-## Supported native shells
+## Supported shells
 
 * Bash: using the name bash or the extensions .bash/.sh
 * Cmd.exe: using the name cmd or the extension .bat

@@ -20,12 +20,7 @@ public class ShellEngineFactory implements ScriptEngineFactory {
 
     static {
         isWin = System.getProperty("os.name").toLowerCase().startsWith("win");
-        if(isWin){
-            utilShell = new Cmd();
-        } else {
-            utilShell = new Bash();
-        }
-        utilShellHandler = new ShellHandler(utilShell);
+        utilShellHandler = new ShellHandler(createShell());
         parameters.put(ScriptEngine.NAME, "shell");
         parameters.put(ScriptEngine.ENGINE, "Shell interpreter");
         parameters.put(ScriptEngine.ENGINE_VERSION, utilShellHandler.getInstalledVersion());
@@ -64,6 +59,7 @@ public class ShellEngineFactory implements ScriptEngineFactory {
     @Override
     public List<String> getNames() {
         return asList(
+                "shell",
                 "bash", "sh", "Bash",
                 "cmd", "bat", "Cmd", "Bat");
     }
@@ -104,6 +100,13 @@ public class ShellEngineFactory implements ScriptEngineFactory {
 
     @Override
     public ScriptEngine getScriptEngine() {
-        return new ShellEngine(new Bash());
+        return new ShellEngine(createShell());
+    }
+
+    private static Shell createShell() {
+        if(isWin){
+            return new Cmd();
+        }
+        return new Bash();
     }
 }

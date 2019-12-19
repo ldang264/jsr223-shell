@@ -16,15 +16,15 @@ import java.util.Map;
 
 public class ShellHandler {
 
-    public static final String NATIVE_SHELL = "native_shell_";
+    public static final String SHELL = "shell_";
 
     public static final String UNIQUE_SEQUENCE_NO = "unique_sequence_no_";
 
-    private static String charsetName = System.getProperty(NATIVE_SHELL + "charset", System.getProperty("sun.jnu.encoding"));
+    private static String charsetName = System.getProperty(SHELL + "charset", System.getProperty("sun.jnu.encoding"));
 
-    private static int timeout = Integer.parseInt(System.getProperty(NATIVE_SHELL + "timeout", "7200000"));
+    private static int timeout = Integer.parseInt(System.getProperty(SHELL + "timeout", "7200000"));
 
-    private static int limit = Integer.parseInt(System.getProperty(NATIVE_SHELL + "stdout_limit", "65536")); // 64K
+    private static int limit = Integer.parseInt(System.getProperty(SHELL + "stdout_limit", "65536")); // 64K
 
     private Shell shell;
 
