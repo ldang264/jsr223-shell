@@ -3,7 +3,14 @@ package jsr223.shell.bash;
 import jsr223.shell.Shell;
 import org.apache.commons.exec.CommandLine;
 
+import java.io.File;
+
 public class Bash implements Shell {
+
+    @Override
+    public CommandLine createByFile(File file) {
+        return new CommandLine("bash").addArgument(file.getAbsolutePath());
+    }
 
     @Override
     public CommandLine createByCommand(String command) {

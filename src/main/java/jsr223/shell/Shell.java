@@ -2,9 +2,11 @@ package jsr223.shell;
 
 import org.apache.commons.exec.CommandLine;
 
-import javax.script.ScriptEngineFactory;
+import java.io.File;
 
 public interface Shell {
+
+    CommandLine createByFile(File file);
 
     CommandLine createByCommand(String command);
 

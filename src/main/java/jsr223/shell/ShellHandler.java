@@ -8,8 +8,7 @@ import org.apache.commons.exec.PumpStreamHandler;
 
 import javax.script.Bindings;
 import javax.script.ScriptContext;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,11 +19,15 @@ public class ShellHandler {
 
     public static final String UNIQUE_SEQUENCE_NO = "unique_sequence_no_";
 
-    private static String charsetName = System.getProperty(SHELL + "charset", System.getProperty("sun.jnu.encoding"));
+    private static String charsetName = System.getProperty(SHELL + "charset_out", System.getProperty("sun.jnu.encoding"));
 
     private static int timeout = Integer.parseInt(System.getProperty(SHELL + "timeout", "7200000"));
 
     private static int limit = Integer.parseInt(System.getProperty(SHELL + "stdout_limit", "65536")); // 64K
+
+    private static final String KEY_LANGUAGE = SHELL + "language";
+
+    private static final String KEY_CHARSET_COMMAND = SHELL + "charset_command";
 
     private Shell shell;
 
@@ -49,15 +52,26 @@ public class ShellHandler {
     }
 
     public CommandResult run(String command, ScriptContext scriptContext) throws IOException {
-        CommandLine commandLine = shell.createByCommand(command);
-        Map<String, String> variables = new HashMap<String, String>(System.getenv());
         Bindings bindings = scriptContext.getBindings(ScriptContext.ENGINE_SCOPE);
+        CommandLine commandLine;
+        File temporaryFile = null;
+        if (bindings.get(KEY_LANGUAGE) != null && bindings.get(KEY_LANGUAGE).toString().startsWith(".")) {
+            String fileExtension = bindings.get(KEY_LANGUAGE).toString();
+            temporaryFile = commandAsTemporaryFile(command, fileExtension, (String) bindings.get(KEY_CHARSET_COMMAND));
+            commandLine = shell.createByFile(temporaryFile);
+        } else {
+            commandLine = shell.createByCommand(command);
+        }
+        Map<String, String> variables = new HashMap<String, String>(System.getenv());
         Map<String, String> bindingVariables = build(bindings);
         variables.putAll(bindingVariables);
         CommandResult commandResult = execute(commandLine, variables);
         IOUtil.pipe(commandResult.getOutMessage(), scriptContext.getWriter());
         IOUtil.pipe(commandResult.getErrorMessage(), scriptContext.getErrorWriter());
         resolveOut(commandResult.getOutMessage(), bindings);
+        if (temporaryFile != null) {
+            temporaryFile.delete();
+        }
         return commandResult;
     }
 
@@ -133,6 +147,24 @@ public class ShellHandler {
     private void addArrayBindingAsEnvironmentVariable(String bindingKey, Object[] bindingValue, Map<String, String> environment) {
         for (int i = 0; i < bindingValue.length; i++) {
             environment.put(bindingKey + "_" + i, (bindingValue[i] == null ? "" : toEmpty(bindingValue[i].toString())));
+        }
+    }
+
+    private File commandAsTemporaryFile(String command, String fileExtension, String commandCharset) {
+        PrintWriter pw = null;
+        try {
+            File commandAsFile = File.createTempFile(SHELL, fileExtension);
+            pw = commandCharset == null ? new PrintWriter(commandAsFile) :
+                    new PrintWriter(new OutputStreamWriter(new FileOutputStream(commandAsFile), commandCharset));
+            pw.print(command);
+            pw.flush();
+            return commandAsFile;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (pw != null) {
+                pw.close();
+            }
         }
     }
 
