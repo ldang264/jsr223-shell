@@ -6,7 +6,6 @@ Shell script engines for Java implementing JSR 223
 
 * Bash: using the name bash or the extensions .bash/.sh
 * Cmd.exe: using the name cmd or the extension .bat
-* Executable: using the name exec
 
 ## Usage
 
